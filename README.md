@@ -18,7 +18,7 @@ bash <(curl -L https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial
 # **Manual installation**
 #### Install the sing-box program
 - **Debian && Ubuntu**
--- **AMD**
+- ***AMD***
 ```
 apt -y update && apt -y install wget && wget -c "https://github.com/SagerNet/sing-box/releases/download/v1.3.0/sing-box-1.3.0-linux-amd64.tar.gz" -O - | tar -xz -C /usr/local/bin --strip-components=1 && chmod +x /usr/local/bin/sing-box
 ```
