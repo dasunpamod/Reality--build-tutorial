@@ -473,6 +473,11 @@ function generate_sing_box_config() {
 
     # 生成 Sing-Box 配置文件
     local config_content='{
+  "log": {
+    "disabled": false,
+    "level": "info",
+    "timestamp": true
+  },
   "inbounds": [
     {
       "type": "vless",
@@ -502,6 +507,10 @@ function generate_sing_box_config() {
     {
       "type": "direct",
       "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
     }
   ]
 }'
