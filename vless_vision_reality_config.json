@@ -15,10 +15,7 @@
           "uuid": "bf000d23-0752-40b4-affe-68f7707a9661", //执行 sing-box generate uuid 生成
           "flow": "xtls-rprx-vision"
         }
-      ],
-	  "transport": {
-	    "type": "http"
-	  },	  
+      ],	  
       "tls": {
         "enabled": true,
         "server_name": "www.gov.hk", //客户端可用的 serverName 列表，暂不支持 * 通配符
