@@ -37,3 +37,44 @@ yum update && yum -y install wget && wget -c "https://github.com/SagerNet/sing-b
 ```
 - **Configure the systemd service of sing-box**
 ```
+wget -P /etc/systemd/system https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial/main/sing-box.service
+```
+- **Download and modify the sing-box configuration file**
+#### Vless+vision+Reality
+```
+
+```
+#### Vless+h2+Reality
+```
+
+```
+#### Vless+gRPC+Reality
+```
+mkdir -p /usr/local/etc/sing-box/ && wget -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial/main/vless_grpc_reality_config.json
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
