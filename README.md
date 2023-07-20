@@ -42,39 +42,17 @@ wget -P /etc/systemd/system https://raw.githubusercontent.com/TinrLin/Reality--b
 - **Download and modify the sing-box configuration file**
 #### Vless+vision+Reality
 ```
-
+mkdir -p /usr/local/etc/sing-box/ && wget -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial/main/vless_vision_reality_config.json
 ```
 #### Vless+h2+Reality
 ```
-
+mkdir -p /usr/local/etc/sing-box/ && wget -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial/main/vless_h2_reality_config.json
 ```
 #### Vless+gRPC+Reality
 ```
 mkdir -p /usr/local/etc/sing-box/ && wget -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial/main/vless_grpc_reality_config.json
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- **Start and run sing-box**
+```
+systemctl daemon-reload && systemctl enable --now sing-box && systemctl status sing-box
+```
