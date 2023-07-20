@@ -83,6 +83,7 @@ function install_latest_sing_box() {
 
 # 检查防火墙配置
 function check_firewall_configuration() {
+    local listen_port=$(jq -r '.inbounds[0].listen_port' /usr/local/etc/sing-box/config.json)
     local os_name=$(uname -s)
     local firewall
 
@@ -107,16 +108,16 @@ function check_firewall_configuration() {
                 ufw enable
             fi
 
-            if ! ufw status | grep -q " $1"; then
-                ufw allow "$1"
+            if ! ufw status | grep -q "$listen_port"; then
+                ufw allow "$listen_port"
             fi
 
             echo "防火墙配置已更新。"
             ;;
         iptables-firewalld)
             if command -v iptables >/dev/null 2>&1; then
-                if ! iptables -C INPUT -p tcp --dport "$1" -j ACCEPT >/dev/null 2>&1; then
-                    iptables -A INPUT -p tcp --dport "$1" -j ACCEPT
+                if ! iptables -C INPUT -p tcp --dport "$listen_port" -j ACCEPT >/dev/null 2>&1; then
+                    iptables -A INPUT -p tcp --dport "$listen_port" -j ACCEPT
                 fi
 
                 iptables-save > /etc/sysconfig/iptables
@@ -130,12 +131,12 @@ function check_firewall_configuration() {
                     systemctl enable firewalld
                 fi
 
-                if ! firewall-cmd --zone=public --list-ports | grep -q "$1/tcp"; then
-                    firewall-cmd --zone=public --add-port="$1/tcp" --permanent
+                if ! firewall-cmd --zone=public --list-ports | grep -q "$listen_port/tcp"; then
+                    firewall-cmd --zone=public --add-port="$listen_port/tcp" --permanent
                 fi
 
-                if ! firewall-cmd --zone=public --list-ports | grep -q "$1/udp"; then
-                    firewall-cmd --zone=public --add-port="$1/udp" --permanent
+                if ! firewall-cmd --zone=public --list-ports | grep -q "$listen_port/udp"; then
+                    firewall-cmd --zone=public --add-port="$listen_port/udp" --permanent
                 fi
 
                 firewall-cmd --reload
@@ -567,7 +568,7 @@ function install_sing_box() {
     install_latest_sing_box
     configure_sing_box_service
     generate_sing_box_config
-    check_firewall_configuration "$listen_port" 
+    check_firewall_configuration
     start_sing_box_service
     extract_config_info_and_public_key 
 }
