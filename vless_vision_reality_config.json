@@ -1,0 +1,49 @@
+{
+  "log": {
+    "disabled": false,
+    "level": "info",
+    "timestamp": true
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "::",
+      "listen_port": 443, //监听端口
+      "users": [
+        {
+          "uuid": "bf000d23-0752-40b4-affe-68f7707a9661", //执行 sing-box generate uuid 生成
+          "flow": "xtls-rprx-vision"
+        }
+      ],
+	  "transport": {
+	    "type": "http"
+	  },	  
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gov.hk", //客户端可用的 serverName 列表，暂不支持 * 通配符
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "www.gov.hk", //目标网站，标准：国外网站，支持 TLSv1.3 与 H2
+            "server_port": 443
+          },
+          "private_key": "UuMBgl7MXTPx9inmQp2UC7Jcnwc6XYbwDNebonM-FCc", // 执行 sing-box generate reality-keypair 生成
+          "short_id": [   //客户端可用的 shortId 列表，可用于区分不同的客户端
+            "0123456789abcdef"   //执行 openssl rand -hex 8 生成
+		      ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ]
+}
