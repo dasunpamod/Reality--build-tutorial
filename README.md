@@ -20,4 +20,20 @@ bash <(curl -L https://raw.githubusercontent.com/TinrLin/Reality--build-tutorial
 #### Debian && Ubuntu
 ##### AMD
 ```
-apt -y update && apt -y install wget && wget -O /usr/local/bin/tuic https://github.com/EAimTY/tuic/releases/download/tuic-server-1.0.0/tuic-server-1.0.0-x86_64-unknown-linux-gnu && chmod +x /usr/local/bin/tuic
+apt -y update && apt -y install wget && wget -c "https://github.com/SagerNet/sing-box/releases/download/v1.3.0/sing-box-1.3.0-linux-amd64.tar.gz" -O - | tar -xz -C /usr/local/bin --strip-components=1 && chmod +x /usr/local/bin/sing-box
+```
+##### ARM
+```
+apt -y update && apt -y install wget && wget -c "https://github.com/SagerNet/sing-box/releases/download/v1.3.0/sing-box-1.3.0-linux-arm64.tar.gz" -O - | tar -xz -C /usr/local/bin --strip-components=1 && chmod +x /usr/local/bin/sing-box
+```
+#### CentOS
+##### AMD
+```
+yum update && yum -y install wget && wget -c "https://github.com/SagerNet/sing-box/releases/download/v1.3.0/sing-box-1.3.0-linux-amd64.tar.gz" -O - | tar -xz -C /usr/local/bin --strip-components=1 && chmod +x /usr/local/bin/sing-box
+```
+##### ARM
+```
+yum update && yum -y install wget && wget -c "https://github.com/SagerNet/sing-box/releases/download/v1.3.0/sing-box-1.3.0-linux-arm64.tar.gz" -O - | tar -xz -C /usr/local/bin --strip-components=1 && chmod +x /usr/local/bin/sing-box
+```
+- **Configure the systemd service of sing-box**
+```
