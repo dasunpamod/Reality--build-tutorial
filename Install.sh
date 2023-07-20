@@ -518,7 +518,7 @@ function generate_sing_box_config() {
     echo "$config_content" > "$config_file"
 
     echo "Sing-Box 配置文件已生成并保存至 $config_file"
-    check_firewall_configuration "$listen_port"    
+       
 }
 
 # 提取配置文件信息
@@ -567,6 +567,7 @@ function install_sing_box() {
     install_latest_sing_box
     configure_sing_box_service
     generate_sing_box_config
+    check_firewall_configuration "$listen_port" 
     start_sing_box_service
     extract_config_info_and_public_key 
 }
