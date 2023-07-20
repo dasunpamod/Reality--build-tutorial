@@ -1,8 +1,15 @@
 #!/bin/bash
 
+# 定义颜色变量
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
 # 安装依赖
 function check_dependencies() {
-    local packages=("wget" "socat" "jq" "openssl")
+    local packages=("wget" "jq" "openssl")
     
     if [[ -n $(command -v apt-get) ]]; then
         packages+=("uuid-runtime")
@@ -32,7 +39,7 @@ function enable_bbr() {
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
         sysctl -p
-        echo -e "${GREEN}BBR 已开启${NC}"
+        echo "BBR 已开启"
     else
         echo -e "${YELLOW}BBR 已经开启，跳过配置。${NC}"
     fi
@@ -59,7 +66,7 @@ function install_latest_sing_box() {
             download_url=$(curl -s $url | grep -o "https://github.com[^\"']*linux-amd64v3.tar.gz")
             ;;
         *)
-            echo "不支持的架构：$arch"
+            echo -e "${RED}不支持的架构：$arch${NC}"
             return 1
             ;;
     esac
@@ -76,7 +83,7 @@ function install_latest_sing_box() {
 
         echo "Sing-Box 安装成功！"
     else
-        echo "无法获取 Sing-Box 的下载 URL。"
+        echo -e "${RED}无法获取 Sing-Box 的下载 URL。${NC}"
         return 1
     fi
 }
@@ -194,8 +201,8 @@ function select_flow_type() {
 
     while true; do
         read -p "请选择流控类型：
-[1]. xtls-rprx-vision
-[2]. 留空
+  [1]. xtls-rprx-vision（vless+vision+reality)
+  [2]. 留空(vless+h2/grpc+reality)
 请输入选项 (默认为 xtls-rprx-vision): " flow_option
 
         case $flow_option in
@@ -208,7 +215,7 @@ function select_flow_type() {
                 break
                 ;;
             *)
-                echo "错误的选项，请重新输入！" >&2
+                echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
                 ;;
         esac
     done
@@ -225,7 +232,7 @@ function generate_listen_port_config() {
         listen_port=${listen_port:-443}
 
         if ! [[ "$listen_port" =~ ^[1-9][0-9]{0,4}$ || "$listen_port" == "443" ]]; then
-            echo "错误：端口范围1-65535，请重新输入！" >&2
+            echo -e "${RED}错误：端口范围1-65535，请重新输入！${NC}" >&2
         else
             break
         fi
@@ -259,7 +266,7 @@ function generate_server_name_config() {
         local tls13_support=$(validate_tls13_support "$server_name")
 
         if [[ "$tls13_support" == "false" ]]; then
-            echo "该网址不支持 TLS 1.3，请重新输入！" >&2
+            echo -e "${RED}该网址不支持 TLS 1.3，请重新输入！${NC}" >&2
             generate_server_name_config
             return
         fi
@@ -278,7 +285,7 @@ function generate_target_server_config() {
         local tls13_support=$(validate_tls13_support "$target_server")
 
         if [[ "$tls13_support" == "false" ]]; then
-            echo "该目标网站地址不支持 TLS 1.3，请重新输入！" >&2
+            echo -e "${RED}该目标网站地址不支持 TLS 1.3，请重新输入！${NC}" >&2
             generate_target_server_config
             return
         fi
@@ -305,7 +312,7 @@ function generate_private_key_config() {
         if openssl pkey -inform PEM -noout -text -in <(echo "$private_key") >/dev/null 2>&1; then
             break
         else
-            echo "无效的私钥，请重新输入！" >&2
+            echo -e "${RED}无效的私钥，请重新输入！${NC}" >&2
         fi
     done
     
@@ -320,7 +327,7 @@ function generate_short_ids_config() {
 
     while [[ "$add_more_short_ids" == "y" ]]; do
         if [[ ${#short_ids[@]} -eq 8 ]]; then
-            echo "已达到最大 shortId 数量限制！" >&2
+            echo -e "${YELLOW}已达到最大 shortId 数量限制！${NC}" >&2
             break
         fi
 
@@ -340,7 +347,7 @@ function generate_short_ids_config() {
                     break
                     ;;
                 *)
-                    echo "错误的选项，请重新输入！" >&2
+                    echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
                     ;;
             esac
         done
@@ -369,8 +376,8 @@ function generate_flow_config() {
 
     while true; do
         read -p "请选择传输层协议：
-[1]. http
-[2]. grpc
+ [1]. http
+ [2]. grpc
 请输入选项 (默认为 http): " transport_option
 
         case $transport_option in
@@ -387,7 +394,7 @@ function generate_flow_config() {
                 break
                 ;;                
             *)
-                echo "错误的选项，请重新输入！" >&2
+                echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
                 ;;
         esac
     done
@@ -420,7 +427,7 @@ function generate_user_config() {
             if [[ $user_uuid =~ ^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$ ]]; then
                 break
             else
-                echo "无效的 UUID，请重新输入！" >&2
+                echo -e "${RED}无效的 UUID，请重新输入！${NC}" >&2
             fi
         done
 
@@ -443,7 +450,7 @@ function generate_user_config() {
                     break
                     ;;
                 *)
-                    echo "错误的选项，请重新输入！" >&2
+                    echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
                     ;;
             esac
         done
@@ -518,8 +525,7 @@ function generate_sing_box_config() {
 
     echo "$config_content" > "$config_file"
 
-    echo "Sing-Box 配置文件已生成并保存至 $config_file"
-       
+    echo "Sing-Box 配置文件已生成并保存至 $config_file"       
 }
 
 # 提取配置文件信息
@@ -534,17 +540,27 @@ function extract_config_info_and_public_key() {
         local target_server=$(jq -r '.inbounds[0].tls.reality.handshake.server' "$config_file")
         local short_ids=$(jq -r '.inbounds[0].tls.reality.short_id[]' "$config_file")
         local public_key=$(cat /tmp/public_key_temp.txt)
-        
-        echo "监听端口: $listen_port"
-        echo "用户 UUIDs:"
-        echo "$users"
-        echo "流控类型: $flow_type"
-        echo "传输层协议: $transport_type"
-        echo "serverName: $server_name"
-        echo "目标网站地址: $target_server"
-        echo "Short IDs:"
-        echo "$short_ids"
-        echo "公钥: $public_key"
+
+        echo -e "${GREEN}节点配置信息：${NC}"
+        echo -e "${CYAN}==================================================================${NC}"  
+        echo -e "${GREEN}监听端口: $listen_port${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}用户 UUID:${NC}"
+        echo -e "${GREEN}$users${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}流控类型: $flow_type${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}传输层协议: $transport_type${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}ServerName: $server_name${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}目标网站地址: $target_server${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}Short ID:${NC}"
+        echo -e "${GREEN}$short_ids${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${GREEN}PublicKey: $public_key${NC}"
+        echo -e "${CYAN}==================================================================${NC}"
 }
 
 # 启动 sing-box 服务
@@ -555,7 +571,7 @@ function start_sing_box_service() {
     systemctl start sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo -e "${GREEN}sing-box 服务已启动。${NC}"
+        echo "sing-box 服务已启动。"
     else
         echo -e "${RED}启动 sing-box 服务失败。${NC}"
     fi    
@@ -579,7 +595,7 @@ function stop_sing_box_service() {
     systemctl stop sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo -e "${GREEN}sing-box 服务已停止。${NC}"
+        echo "sing-box 服务已停止。"
     else
         echo -e "${RED}停止 sing-box 服务失败。${NC}"
     fi
@@ -591,7 +607,7 @@ function restart_sing_box_service() {
     systemctl restart sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo -e "${GREEN}sing-box 服务已重启。${NC}"
+        echo "sing-box 服务已重启。"
     else
         echo -e "${RED}重启 sing-box 服务失败。${NC}"
     fi
@@ -615,7 +631,7 @@ function uninstall_sing_box() {
     rm -rf /usr/local/etc/sing-box
     rm -rf /etc/systemd/system/sing-box.service
 
-    echo -e "${GREEN}sing-box 卸载完成。${NC}"
+    echo "sing-box 卸载完成。"
 }
 
 # 主菜单
@@ -633,7 +649,7 @@ echo -e "${GREEN}               ------------------------------------------------
     echo -e "  ${CYAN}[0]. 退出脚本${NC}"
 
     local choice
-    read -p "$(echo -e "${CYAN}请选择 [1-6]: ${NC}")" choice
+    read -p "请选择 [1-6]: " choice
 
     case $choice in
         1)
