@@ -201,8 +201,8 @@ function select_flow_type() {
 
     while true; do
         read -p "请选择流控类型：
-  [1]. xtls-rprx-vision（vless+vision+reality)
-  [2]. 留空(vless+h2/grpc+reality)
+ [1]. xtls-rprx-vision（vless+vision+reality)
+ [2]. 留空(vless+h2/grpc+reality)
 请输入选项 (默认为 xtls-rprx-vision): " flow_option
 
         case $flow_option in
