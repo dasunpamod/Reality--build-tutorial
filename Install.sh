@@ -261,6 +261,10 @@ function generate_server_name_config() {
     local server_name="www.gov.hk"
 
     read -p "请输入可用的 serverName 列表 (默认为 www.gov.hk): " user_input
+    
+    # 验证服务器是否支持TLS 1.3
+    echo "正在验证服务器支持的TLS版本..."
+    
     if [[ -n "$user_input" ]]; then
         server_name="$user_input"
         local tls13_support=$(validate_tls13_support "$server_name")
@@ -280,6 +284,10 @@ function generate_target_server_config() {
     local target_server="www.gov.hk"
 
     read -p "请输入目标网站地址(默认为 www.gov.hk): " user_input
+    
+    # 验证目标服务器是否支持TLS 1.3
+    echo "正在验证服务器支持的TLS版本..."
+    
     if [[ -n "$user_input" ]]; then
         target_server="$user_input"
         local tls13_support=$(validate_tls13_support "$target_server")
