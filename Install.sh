@@ -263,7 +263,7 @@ function generate_server_name_config() {
     read -p "请输入可用的 serverName 列表 (默认为 www.gov.hk): " user_input
     
     # 验证服务器是否支持TLS 1.3
-    echo "正在验证服务器支持的TLS版本..."
+    echo "正在验证服务器支持的TLS版本..." >&2
     
     if [[ -n "$user_input" ]]; then
         server_name="$user_input"
@@ -286,7 +286,7 @@ function generate_target_server_config() {
     read -p "请输入目标网站地址(默认为 www.gov.hk): " user_input
     
     # 验证目标服务器是否支持TLS 1.3
-    echo "正在验证服务器支持的TLS版本..."
+    echo "正在验证服务器支持的TLS版本..." >&2
     
     if [[ -n "$user_input" ]]; then
         target_server="$user_input"
