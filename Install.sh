@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# 定义颜色变量
+# define color variables
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# 安装依赖
+# install dependencies
 function check_dependencies() {
     local packages=("wget" "jq" "openssl")
     
@@ -16,13 +16,13 @@ function check_dependencies() {
     elif [[ -n $(command -v yum) ]]; then
         packages+=("util-linux")
     else
-        echo -e "${RED}无法确定系统包管理器，请手动安装依赖。${NC}"
+        echo -e "${RED} cannot determine the system package manager, please install dependencies manually. ${NC}"
         exit 1
     fi
 
     for package in "${packages[@]}"; do
         if ! command -v "$package" &> /dev/null; then
-            echo "安装依赖: $package"
+            echo "Install dependencies: $package"
             if [[ -n $(command -v apt-get) ]]; then
                 apt-get -y install "$package"
             elif [[ -n $(command -v yum) ]]; then
@@ -32,26 +32,26 @@ function check_dependencies() {
     done
 }
 
-# 开启 BBR
+# enable BBR
 function enable_bbr() {
     if ! grep -q "net.core.default_qdisc=fq" /etc/sysctl.conf; then
-        echo "开启 BBR..."
+        echo "Enable BBR..."
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
         sysctl -p
-        echo "BBR 已开启"
+        echo "BBR is enabled"
     else
-        echo -e "${YELLOW}BBR 已经开启，跳过配置。${NC}"
+        echo -e "${YELLOW}BBR is enabled, skip configuration. ${NC}"
     fi
 }
 
-# 下载并安装最新的 Sing-Box 版本
+# Download and install the latest Sing-Box version
 function install_latest_sing_box() {
     local arch=$(uname -m)
     local url="https://api.github.com/repos/SagerNet/sing-box/releases/latest"
     local download_url
 
-    # 根据 VPS 架构确定合适的下载 URL
+    # Determine the appropriate download URL according to the VPS architecture
     case $arch in
         x86_64)
             download_url=$(curl -s $url | grep -o "https://github.com[^\"']*linux-amd64.tar.gz")
@@ -66,29 +66,29 @@ function install_latest_sing_box() {
             download_url=$(curl -s $url | grep -o "https://github.com[^\"']*linux-amd64v3.tar.gz")
             ;;
         *)
-            echo -e "${RED}不支持的架构：$arch${NC}"
+            echo -e "Unsupported architecture for ${RED}: $arch${NC}"
             return 1
             ;;
     esac
 
-    # 下载并安装 Sing-Box
+    # Download and install Sing-Box
     if [ -n "$download_url" ]; then
-        echo "正在下载 Sing-Box..."
+        echo "Downloading Sing-Box..."
         curl -L -o sing-box.tar.gz "$download_url"
         tar -xzf sing-box.tar.gz -C /usr/local/bin --strip-components=1
         rm sing-box.tar.gz
 
-        # 赋予可执行权限
+        # Grant executable permissions
         chmod +x /usr/local/bin/sing-box
 
-        echo "Sing-Box 安装成功！"
+        echo "Sing-Box installed successfully!"
     else
-        echo -e "${RED}无法获取 Sing-Box 的下载 URL。${NC}"
+        echo -e "${RED} cannot get the download URL of Sing-Box. ${NC}"
         return 1
     fi
 }
 
-# 检查防火墙配置
+# Check firewall configuration
 function check_firewall_configuration() {
     local listen_port=$(jq -r '.inbounds[0].listen_port' /usr/local/etc/sing-box/config.json)
     local os_name=$(uname -s)
@@ -103,14 +103,14 @@ function check_firewall_configuration() {
     fi
 
     if [[ -z $firewall ]]; then
-        echo -e "${RED}无法检测到适用的防火墙配置工具，请手动配置防火墙。${NC}"
+        echo -e "${RED} cannot detect the applicable firewall configuration tool, please configure the firewall manually. ${NC}"
         return
     fi
 
-    echo "检查防火墙配置..."
+    echo "Check firewall configuration..."
 
     case $firewall in
-        ufw)
+        ugh)
             if ! ufw status | grep -q "Status: active"; then
                 ufw enable
             fi
@@ -119,7 +119,7 @@ function check_firewall_configuration() {
                 ufw allow "$listen_port"
             fi
 
-            echo "防火墙配置已更新。"
+            echo "The firewall configuration has been updated."
             ;;
         iptables-firewalld)
             if command -v iptables >/dev/null 2>&1; then
@@ -129,7 +129,7 @@ function check_firewall_configuration() {
 
                 iptables-save > /etc/sysconfig/iptables
 
-                echo "iptables防火墙配置已更新。"
+                echo "The iptables firewall configuration has been updated."
             fi
 
             if command -v firewalld >/dev/null 2>&1; then
@@ -148,15 +148,15 @@ function check_firewall_configuration() {
 
                 firewall-cmd --reload
 
-                echo "firewalld防火墙配置已更新。"
+                echo "firewalld firewall configuration has been updated."
             fi
             ;;
     esac
 }
 
-# 配置 sing-box 开机自启服务
+# Configure sing-box boot self-start service
 function configure_sing_box_service() {
-    echo "配置 sing-box 开机自启服务..."
+    echo "Configure sing-box boot self-starting service..."
     echo "[Unit]
 Description=sing-box service
 Documentation=https://sing-box.sagernet.org
@@ -174,7 +174,7 @@ LimitNOFILE=infinity
 WantedBy=multi-user.target" |  tee /etc/systemd/system/sing-box.service >/dev/null
 }
 
-# 检查 sing-box 文件夹是否存在，如果不存在则创建
+# Check if the sing-box folder exists, create it if not
 function check_sing_box_folder() {
     local folder="/usr/local/etc/sing-box"
     if [[ ! -d "$folder" ]]; then
@@ -182,28 +182,28 @@ function check_sing_box_folder() {
     fi
 }
 
-# 生成随机 UUID
+# generate random UUID
 function generate_uuid() {
     local uuid=$(uuidgen)
     echo "$uuid"
 }
 
-# 生成随机 ShortId
+# Generate a random ShortId
 function generate_short_id() {
     local length=$1
     local short_id=$(openssl rand -hex "$length")
     echo "$short_id"
 }
 
-# 选择流控类型
+# Select flow control type
 function select_flow_type() {
     local flow_type="xtls-rprx-vision"
 
     while true; do
-        read -p "请选择流控类型：
+        read -p "Please select the flow control type:
  [1]. xtls-rprx-vision（vless+vision+reality)
- [2]. 留空(vless+h2/grpc+reality)
-请输入选项 (默认为 xtls-rprx-vision): " flow_option
+ [2]. Leave blank (vless+h2/grpc+reality)
+Please enter the option (default is xtls-rprx-vision): " flow_option
 
         case $flow_option in
             "" | 1)
@@ -215,7 +215,7 @@ function select_flow_type() {
                 break
                 ;;
             *)
-                echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
+                echo -e "${RED} wrong option, please re-enter! ${NC}" >&2
                 ;;
         esac
     done
@@ -223,16 +223,16 @@ function select_flow_type() {
     echo "$flow_type"
 }
 
-# 监听端口配置
+# Listening port configuration
 function generate_listen_port_config() {
     local listen_port
 
     while true; do
-        read -p "请输入监听端口 (默认为 443): " listen_port
+        read -p "Please enter the listening port (default is 443): " listen_port
         listen_port=${listen_port:-443}
 
         if ! [[ "$listen_port" =~ ^[1-9][0-9]{0,4}$ || "$listen_port" == "443" ]]; then
-            echo -e "${RED}错误：端口范围1-65535，请重新输入！${NC}" >&2
+            echo -e "${RED} error: port range 1-65535, please re-enter! ${NC}" >&2
         else
             break
         fi
@@ -241,7 +241,7 @@ function generate_listen_port_config() {
     echo "$listen_port"
 }
 
-# 验证服务器是否支持TLS 1.3
+# Verify that the server supports TLS 1.3
 function validate_tls13_support() {
     local server="$1"
     local tls13_supported="false"
@@ -256,21 +256,21 @@ function validate_tls13_support() {
     echo "$tls13_supported"
 }
 
-# ServerName 配置
+# ServerName configuration
 function generate_server_name_config() {
     local server_name="www.gov.hk"
 
-    read -p "请输入可用的 serverName 列表 (默认为 www.gov.hk): " user_input
+    read -p "Please enter a list of available serverNames (default is www.gov.hk): " user_input
     
-    # 验证服务器是否支持TLS 1.3
-    echo "正在验证服务器支持的TLS版本..." >&2
+    # Verify that the server supports TLS 1.3
+    echo "Verifying TLS versions supported by server..." >&2
     
     if [[ -n "$user_input" ]]; then
         server_name="$user_input"
         local tls13_support=$(validate_tls13_support "$server_name")
 
         if [[ "$tls13_support" == "false" ]]; then
-            echo -e "${RED}该网址不支持 TLS 1.3，请重新输入！${NC}" >&2
+            echo -e "${RED}The URL does not support TLS 1.3, please re-enter! ${NC}" >&2
             generate_server_name_config
             return
         fi
@@ -279,21 +279,21 @@ function generate_server_name_config() {
     echo "$server_name"
 }
 
-# 目标网站配置
+# Target site configuration
 function generate_target_server_config() {
     local target_server="www.gov.hk"
 
-    read -p "请输入目标网站地址(默认为 www.gov.hk): " user_input
+    read -p "Please enter the target website address (default is www.gov.hk): " user_input
     
-    # 验证目标服务器是否支持TLS 1.3
-    echo "正在验证服务器支持的TLS版本..." >&2
+    # Verify that the target server supports TLS 1.3
+    echo "Verifying TLS versions supported by server..." >&2
     
     if [[ -n "$user_input" ]]; then
         target_server="$user_input"
         local tls13_support=$(validate_tls13_support "$target_server")
 
         if [[ "$tls13_support" == "false" ]]; then
-            echo -e "${RED}该目标网站地址不支持 TLS 1.3，请重新输入！${NC}" >&2
+            echo -e "${RED}The target website address does not support TLS 1.3, please re-enter! ${NC}" >&2
             generate_target_server_config
             return
         fi
@@ -302,12 +302,12 @@ function generate_target_server_config() {
     echo "$target_server"
 }
 
-# 私钥配置
+# Private key configuration
 function generate_private_key_config() {
     local private_key
 
     while true; do
-        read -p "请输入私钥 (默认随机生成私钥): " private_key
+        read -p "Please enter the private key (the private key is randomly generated by default): " private_key
 
         if [[ -z "$private_key" ]]; then
             local keypair_output=$(sing-box generate reality-keypair)
@@ -316,18 +316,18 @@ function generate_private_key_config() {
             break
         fi
 
-        # 验证私钥格式是否正确
+        # Verify that the private key format is correct
         if openssl pkey -inform PEM -noout -text -in <(echo "$private_key") >/dev/null 2>&1; then
             break
         else
-            echo -e "${RED}无效的私钥，请重新输入！${NC}" >&2
+            echo -e "${RED} invalid private key, please re-enter! ${NC}" >&2
         fi
     done
     
     echo "$private_key"
 }
 
-# ShortIds 配置
+# ShortIds configuration
 function generate_short_ids_config() {
     local short_ids=()
     local add_more_short_ids="y"
@@ -335,7 +335,7 @@ function generate_short_ids_config() {
 
     while [[ "$add_more_short_ids" == "y" ]]; do
         if [[ ${#short_ids[@]} -eq 8 ]]; then
-            echo -e "${YELLOW}已达到最大 shortId 数量限制！${NC}" >&2
+            echo -e "${YELLOW} has reached the maximum number of shortIds! ${NC}" >&2
             break
         fi
 
@@ -343,7 +343,7 @@ function generate_short_ids_config() {
         short_ids+=("$short_id")
 
         while true; do
-            read -p "是否继续添加 shortId？(y/n，默认为 n): " add_more_short_ids
+            read -p "Do you want to continue adding shortIds? (y/n, default is n): " add_more_short_ids
             add_more_short_ids=${add_more_short_ids:-n}
             case $add_more_short_ids in
                 [yY])
@@ -355,7 +355,7 @@ function generate_short_ids_config() {
                     break
                     ;;
                 *)
-                    echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
+                    echo -e "${RED} wrong option, please re-enter! ${NC}" >&2
                     ;;
             esac
         done
@@ -371,7 +371,7 @@ function generate_short_ids_config() {
     echo "$short_ids_config"
 }
 
-# 流控配置
+# flow control configuration
 function generate_flow_config() {
     local flow_type="$1"
     local transport_config=""
@@ -383,10 +383,10 @@ function generate_flow_config() {
     local transport_type=""
 
     while true; do
-        read -p "请选择传输层协议：
+        read -p "Please select the transport layer protocol:
  [1]. http
  [2]. grpc
-请输入选项 (默认为 http): " transport_option
+Please enter an option (default is http): " transport_option
 
         case $transport_option in
             1)
@@ -402,7 +402,7 @@ function generate_flow_config() {
                 break
                 ;;                
             *)
-                echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
+                echo -e "${RED} wrong option, please re-enter! ${NC}" >&2
                 ;;
         esac
     done
@@ -415,7 +415,7 @@ function generate_flow_config() {
     echo "$transport_config"
 }
 
-# 用户配置
+# user configuration
 function generate_user_config() {
     local flow_type="$1"
     local users=()
@@ -425,7 +425,7 @@ function generate_user_config() {
         local user_uuid
 
         while true; do
-            read -p "请输入用户 UUID (默认随机生成 UUID): " user_uuid
+            read -p "Please enter the user UUID (UUID is randomly generated by default): " user_uuid
 
             if [[ -z "$user_uuid" ]]; then
                 user_uuid=$(generate_uuid)
@@ -435,7 +435,7 @@ function generate_user_config() {
             if [[ $user_uuid =~ ^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$ ]]; then
                 break
             else
-                echo -e "${RED}无效的 UUID，请重新输入！${NC}" >&2
+                echo -e "${RED} invalid UUID, please re-enter! ${NC}" >&2
             fi
         done
 
@@ -446,7 +446,7 @@ function generate_user_config() {
         },')
 
         while true; do
-            read -p "是否继续添加用户？(y/n，默认为 n): " add_more_users
+            read -p "Continue to add users? (y/n, default is n): " add_more_users
             add_more_users=${add_more_users:-n}
             case $add_more_users in
                 [yY])
@@ -458,19 +458,19 @@ function generate_user_config() {
                     break
                     ;;
                 *)
-                    echo -e "${RED}错误的选项，请重新输入！${NC}" >&2
+                    echo -e "${RED} wrong option, please re-enter! ${NC}" >&2
                     ;;
             esac
         done
     done
 
-    # 去除最后一个用户配置的末尾逗号
+    # Remove the comma at the end of the last user configuration
     users[-1]=${users[-1]%,}
 
     echo "${users[*]}"
 }
 
-# 生成 Sing-Box 配置文件
+# Generate Sing-Box configuration file
 function generate_sing_box_config() {
     check_sing_box_folder
     local config_file="/usr/local/etc/sing-box/config.json"
@@ -487,7 +487,7 @@ function generate_sing_box_config() {
     local private_key=$(generate_private_key_config)
     local short_ids=$(generate_short_ids_config)
 
-    # 生成 Sing-Box 配置文件
+    # Generate Sing-Box configuration file
     local config_content='{
   "log": {
     "disabled": false,
@@ -533,10 +533,10 @@ function generate_sing_box_config() {
 
     echo "$config_content" > "$config_file"
 
-    echo "Sing-Box 配置文件已生成并保存至 $config_file"       
+    echo "Sing-Box configuration file has been generated and saved to $config_file"       
 }
 
-# 提取配置文件信息
+# Extract configuration file information
 function extract_config_info_and_public_key() {
     local config_file="/usr/local/etc/sing-box/config.json"
 
@@ -549,43 +549,43 @@ function extract_config_info_and_public_key() {
         local short_ids=$(jq -r '.inbounds[0].tls.reality.short_id[]' "$config_file")
         local public_key=$(cat /tmp/public_key_temp.txt)
 
-        echo -e "${GREEN}节点配置信息：${NC}"
+        echo -e "${GREEN} node configuration information: ${NC}"
         echo -e "${CYAN}==================================================================${NC}"  
-        echo -e "${GREEN}监听端口: $listen_port${NC}"
+        echo -e "${GREEN} listening port: $listen_port${NC}"
         echo -e "${CYAN}------------------------------------------------------------------${NC}" 
-        echo -e "${GREEN}用户 UUID:${NC}"
+        echo -e "${GREEN}User UUID:${NC}"
         echo -e "${GREEN}$users${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
-        echo -e "${GREEN}流控类型: $flow_type${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
-        echo -e "${GREEN}传输层协议: $transport_type${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        echo -e "${GREEN} flow control type: $flow_type${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        echo -e "${GREEN} transport layer protocol: $transport_type${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
         echo -e "${GREEN}ServerName: $server_name${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
-        echo -e "${GREEN}目标网站地址: $target_server${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        echo -e "${GREEN} target website address: $target_server${NC}"
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
         echo -e "${GREEN}Short ID:${NC}"
         echo -e "${GREEN}$short_ids${NC}"
-        echo -e "${CYAN}------------------------------------------------------------------${NC}" 
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
         echo -e "${GREEN}PublicKey: $public_key${NC}"
         echo -e "${CYAN}==================================================================${NC}"
 }
 
-# 启动 sing-box 服务
+# Start the sing-box service
 function start_sing_box_service() {
-    echo "启动 sing-box 服务..."
+    echo "Starting sing-box service..."
     systemctl daemon-reload
     systemctl enable sing-box
     systemctl start sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo "sing-box 服务已启动。"
+        echo "sing-box service started."
     else
-        echo -e "${RED}启动 sing-box 服务失败。${NC}"
+        echo -e "${RED} failed to start the sing-box service. ${NC}"
     fi    
 }
 
-# 安装 sing-box
+# install sing-box
 function install_sing_box() {
     check_dependencies
     enable_bbr
@@ -597,67 +597,67 @@ function install_sing_box() {
     extract_config_info_and_public_key 
 }
 
-# 停止 sing-box 服务
+# Stop the sing-box service
 function stop_sing_box_service() {
-    echo "停止 sing-box 服务..."
+    echo "Stop sing-box service..."
     systemctl stop sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo "sing-box 服务已停止。"
+        echo "sing-box service stopped."
     else
-        echo -e "${RED}停止 sing-box 服务失败。${NC}"
+        echo -e "${RED} failed to stop sing-box service. ${NC}"
     fi
 }
 
-# 重启 sing-box 服务
+# Restart the sing-box service
 function restart_sing_box_service() {
-    echo "重启 sing-box 服务..."
+    echo "Restart sing-box service..."
     systemctl restart sing-box
 
     if [[ $? -eq 0 ]]; then
-        echo "sing-box 服务已重启。"
+        echo "sing-box service restarted."
     else
-        echo -e "${RED}重启 sing-box 服务失败。${NC}"
+        echo -e "${RED} failed to restart the sing-box service. ${NC}"
     fi
 }
 
-# 查看 sing-box 服务日志
+# View the sing-box service log
 function view_sing_box_log() {
-    echo "正在查看 sing-box 服务日志..."
+    echo "Checking sing-box service logs..."
     journalctl -u sing-box -f
 }
 
-# 卸载 sing-box
+# Uninstall sing-box
 function uninstall_sing_box() {
-    echo "开始卸载 sing-box..."
+    echo "Starting uninstalling sing-box..."
 
     stop_sing_box_service
 
-    # 删除文件和文件夹
-    echo "删除文件和文件夹..."
+    # Delete files and folders
+    echo "Deleting files and folders..."
     rm -rf /usr/local/bin/sing-box
     rm -rf /usr/local/etc/sing-box
     rm -rf /etc/systemd/system/sing-box.service
 
-    echo "sing-box 卸载完成。"
+    echo "Sing-box uninstallation completed."
 }
 
-# 主菜单
+# main menu
 function main_menu() {
 echo -e "${GREEN}               ------------------------------------------------------------------------------------ ${NC}"
-echo -e "${GREEN}               |                          欢迎使用 Reality 安装程序                               |${NC}"
-echo -e "${GREEN}               |                      项目地址:https://github.com/TinrLin                         |${NC}"
+echo -e "${GREEN} | Welcome to the Reality Installer|${NC}"
+echo -e "${GREEN} | project address: https://github.com/TinrLin |${NC}"
 echo -e "${GREEN}               ------------------------------------------------------------------------------------${NC}"
-    echo -e "${CYAN}请选择要执行的操作：${NC}"
-    echo -e "  ${CYAN}[1]. 安装 sing-box 服务${NC}"
-    echo -e "  ${CYAN}[2]. 停止 sing-box 服务${NC}"
-    echo -e "  ${CYAN}[3]. 重启 sing-box 服务${NC}"
-    echo -e "  ${CYAN}[4]. 查看 sing-box 日志${NC}"
-    echo -e "  ${CYAN}[5]. 卸载 sing-box 服务${NC}"
-    echo -e "  ${CYAN}[0]. 退出脚本${NC}"
+    echo -e "${CYAN}Please select the operation to be performed: ${NC}"
+    echo -e " ${CYAN}[1]. Install sing-box service ${NC}"
+    echo -e " ${CYAN}[2]. Stop sing-box service ${NC}"
+    echo -e " ${CYAN}[3]. Restart sing-box service ${NC}"
+    echo -e "${CYAN}[4]. View sing-box log ${NC}"
+    echo -e "${CYAN}[5]. Uninstall sing-box service ${NC}"
+    echo -e " ${CYAN}[0]. exit script ${NC}"
 
     local choice
-    read -p "请选择 [1-6]: " choice
+    read -p "Please choose [1-6]: " choice
 
     case $choice in
         1)
@@ -676,11 +676,11 @@ echo -e "${GREEN}               ------------------------------------------------
             uninstall_sing_box
             ;;
         0)
-            echo -e "${GREEN}感谢使用 Reality 安装脚本！再见！${NC}"
+            echo -e "${GREEN} Thanks for using the Reality installer script! Goodbye! ${NC}"
             exit 0
             ;;
         *)
-            echo -e "${RED}无效的选择，请重新输入。${NC}"
+            echo -e "${RED} invalid selection, please re-enter. ${NC}"
             main_menu
             ;;
     esac
