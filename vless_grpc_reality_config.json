@@ -9,10 +9,10 @@
       "type": "vless",
       "tag": "vless-in",
       "listen": "::",
-      "listen_port": 443, //监听端口
+      "listen_port": 443, //listen port
       "users": [
         {
-          "uuid": "bf000d23-0752-40b4-affe-68f7707a9661", //执行 sing-box generate uuid 生成
+          "uuid": "bf000d23-0752-40b4-affe-68f7707a9661", //execute sing-box generate uuid generation
           "flow": ""
         }
       ],
@@ -21,16 +21,16 @@
       },	  
       "tls": {
         "enabled": true,
-        "server_name": "www.gov.hk", //客户端可用的 serverName 列表，暂不支持 * 通配符
+        "server_name": "www.gov.hk", //A list of serverNames available to the client, * wildcards are not supported for now
         "reality": {
           "enabled": true,
           "handshake": {
-            "server": "www.gov.hk", //目标网站，标准：国外网站，支持 TLSv1.3 与 H2
+            "server": "www.gov.hk", //target website, standard: foreign website, support TLSv1.3 and H2
             "server_port": 443
           },
-          "private_key": "UuMBgl7MXTPx9inmQp2UC7Jcnwc6XYbwDNebonM-FCc", // 执行 sing-box generate reality-keypair 生成
-          "short_id": [   //客户端可用的 shortId 列表，可用于区分不同的客户端
-            "0123456789abcdef"   //执行 openssl rand -hex 8 生成
+          "private_key": "UuMBgl7MXTPx9inmQp2UC7Jcnwc6XYbwDNebonM-FCc", // Execute sing-box generate reality-keypair to generate
+          "short_id": [ //The shortId list available to the client, which can be used to distinguish different clients
+            "0123456789abcdef" //Execute openssl rand -hex 8 to generate
           ]
         }
       }
